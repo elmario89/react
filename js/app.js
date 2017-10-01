@@ -26,23 +26,26 @@ var Article = React.createClass({
     },
     getInitialState: function() {
         return {
-            visible: false
+            visible: false,
+            counter: 0
         };
     },
     readmoreClick: function(e) {
         e.preventDefault();
 
-        var state = this.state.visible;
+        var state = this.state.visible,
+            counter = this.state.counter;
 
         if (state) {
             this.setState({visible: false});
         } else {
-            this.setState({visible: true});
+            this.setState({visible: true, counter: ++counter});
         }
     },
     render: function() {
         var data = this.props.data,
-            visible = this.state.visible;
+            visible = this.state.visible,
+            counter = this.state.counter;
 
         return (
             <div className="article">
@@ -50,10 +53,10 @@ var Article = React.createClass({
                 <p className="news__text">{data.text}</p>
                 <a href="#"
                    onClick={this.readmoreClick}
-                   className={'news__readmore'}
-                >
-                    {visible ? 'Свернуть' : 'Подробнее'}
+                   className={'news__readmore'}>
+                   {visible ? 'Свернуть' : 'Подробнее'}
                 </a>
+                <div>Новость прочитана  {counter} раз</div>
                 <p className={'news__big-tex ' + (visible ? '' : 'none')}>{data.bigText}</p>
             </div>
         )
@@ -83,7 +86,10 @@ var News = React.createClass({
         return (
             <div className="news">
                 {newsTemplate}
-                <strong className={'news__count ' + (data.length > 0 ? '' : 'none')}>Всего новостей: {data.length}</strong>
+                <strong
+                    className={'news__count ' + (data.length > 0 ? '' : 'none')}>
+                    Всего новостей: {data.length}
+                </strong>
             </div>
         )
     }
