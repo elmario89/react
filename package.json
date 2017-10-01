@@ -1,0 +1,17 @@
+{
+  "name": "react-test",
+  "version": "1.0.0",
+  "description": "React test project",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "Mikhail Smirnov",
+  "license": "ISC",
+  "dependencies": {
+    "browserify": "^14.4.0",
+    "express": "^4.16.1",
+    "react": "^16.0.0",
+    "react-dom": "^16.0.0"
+  }
+}
