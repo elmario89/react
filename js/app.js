@@ -1,3 +1,5 @@
+window.ee = new EventEmitter();
+
 var my_news = [
     {
         author: 'Саша Печкин',
@@ -19,8 +21,26 @@ var my_news = [
 var dom = ReactDOM.findDOMNode;
 
 var Add = React.createClass({
-    onClickHandler: function() {
-        alert('Автор: ' + dom(this.refs.author).value + ' \nТекст: ' + dom(this.refs.text).value);
+    onClickHandler: function(e) {
+        e.preventDefault();
+
+        var author = dom(this.refs.author).value;
+        var text = dom(this.refs.text).value;
+        var preview = dom(this.refs.preview).value;
+
+        var item = [{
+            author: author,
+            text: text || 'No text',
+            preview: preview
+        }];
+
+        window.ee.emit('News.add', item);
+
+        this.refs.text.value = '';
+        this.refs.preview.value = '';
+        this.setState({previewIsEmpty: true})
+
+        console.log(this.state);
     },
     onCheckAgreement: function(e) {
         if (!e.target.checked) {
@@ -36,16 +56,20 @@ var Add = React.createClass({
             this.setState({['' + field]: true})
         }
     },
+    onTextChange: function(e) {
+        this.setState({text: e.target.value});
+    },
     getInitialState: function() {
         return {
             agreementChecked: false,
             authorIsEmpty: true,
-            textIsEmpty: true
+            previewIsEmpty: true,
+            text: ''
         }
     },
     render: function() {
         var authorIsEmpty = this.state.authorIsEmpty;
-        var textIsEmpty = this.state.textIsEmpty;
+        var previewIsEmpty = this.state.previewIsEmpty;
         var agreementChecked = this.state.agreementChecked;
 
         return (
@@ -63,9 +87,18 @@ var Add = React.createClass({
                 <textarea
                     className='add__text'
                     defaultValue=''
+                    ref='preview'
+                    placeholder='введите превью новости'
+                    onChange={this.onFieldChange.bind(this, 'previewIsEmpty')}
+                ></textarea>
+                <br/>
+
+                <textarea
+                    className='add__text'
+                    defaultValue=''
                     ref='text'
-                    placeholder='введите текст новости'
-                    onChange={this.onFieldChange.bind(this, 'textIsEmpty')}
+                    placeholder='введите полный текст новости'
+                    onChange={this.onTextChange}
                 ></textarea>
                 <br/>
 
@@ -83,8 +116,8 @@ var Add = React.createClass({
                     className='add__btn'
                     onClick={this.onClickHandler}
                     ref='alert_button'
-                    disabled={!agreementChecked || authorIsEmpty || textIsEmpty}>
-                    Show added news.
+                    disabled={!agreementChecked || authorIsEmpty || previewIsEmpty}>
+                    Add news.
                 </button>
             </form>
         )
@@ -125,14 +158,14 @@ var Article = React.createClass({
         return (
             <div className="article">
                 <p className="news__author">{data.author}</p>
-                <p className="news__text">{data.text}</p>
+                <p className="news__text">{data.preview}</p>
                 <a href="#"
                    onClick={this.readmoreClick}
                    className={'news__readmore'}>
                    {visible ? 'Свернуть' : 'Подробнее'}
                 </a>
                 <div>Новость прочитана  {counter} раз</div>
-                <p className={'news__big-tex ' + (visible ? '' : 'none')}>{data.bigText}</p>
+                <p className={'news__big-tex ' + (visible ? '' : 'none')}>{data.text}</p>
             </div>
         )
     }
@@ -171,12 +204,28 @@ var News = React.createClass({
 });
 
 var App = React.createClass({
+    getInitialState: function() {
+        return {
+            news: my_news
+        }
+    },
+    componentDidMount: function() {
+        var self = this;
+
+        window.ee.addListener('News.add', function(item) {
+            var newsQuery = item.concat(self.state.news);
+            self.setState({news: newsQuery});
+        });
+    },
+    componentWillUnmount: function() {
+        window.ee.removeListener('News.add');
+    },
     render: function() {
         return (
             <div>
                 <Add/>
                 <h3>Новости</h3>
-                <News data={my_news}/>
+                <News data={this.state.news}/>
             </div>
         )
     }
